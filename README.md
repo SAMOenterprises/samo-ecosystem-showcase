@@ -1,210 +1,249 @@
-# SAMO — Sports League, Club Management & Enterprise POS Ecosystem
+# SAMO — Sports League, Club ERP & Enterprise POS Ecosystem
 
 <div align="center">
 
-![Flutter](https://img.shields.io/badge/Flutter-3.9.2+-02569B?style=for-the-badge&logo=flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/Dart-3.9.2+-0175C2?style=for-the-badge&logo=dart&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Clean Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture_%2B_BLoC-blue?style=for-the-badge)
-![Security](https://img.shields.io/badge/Security-freeRASP_%26_RLS-critical?style=for-the-badge)
-![Platform](https://img.shields.io/badge/Platforms-Android_%7C_iOS_%7C_Web-orange?style=for-the-badge)
+<img src="assets/samo_logo.png" alt="SAMO Logo" width="160" />
+
+### *Mission-Critical Multiplatform Architecture & Technical Case Study*
 
 <br/>
 
-**A mission-critical, enterprise-grade multiplatform ecosystem designed for real-time sports league matchmaking, dynamic ELO rankings, automated tournament management, club court reservations, and a high-concurrency Point of Sale (POS) & ERP subsystem.**
+[![Flutter](https://img.shields.io/badge/Flutter-3.9.2+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.9.2+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%2015-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2B%20BLoC-6f42c1?style=for-the-badge)](#system-architecture--design-patterns)
+[![Security](https://img.shields.io/badge/Security-freeRASP%20%2B%20RLS-critical?style=for-the-badge)](#7-devsecops-mobile-app-hardening-rasp-and-multi-tenant-rls)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20Web-orange?style=for-the-badge)](#tech-stack-and-dependencies)
 
-<sub>*Note: This repository serves as a public architectural showcase and technical case study. Proprietary business algorithms, backend secrets, and commercial assets are private and protected.*</sub>
+<br/>
+
+**An enterprise-grade, high-concurrency multiplatform ecosystem engineered for competitive sports leagues, dynamic ELO matchmaking, automated tournament brackets, real-time facility bookings, and an integrated Point of Sale (POS) & ERP subsystem.**
+
+<sub>Proprietary product developed and maintained by **[SAMO Enterprises](https://samoenterprises.site/)**.</sub><br/>
+<sub>*Note: This repository serves as a public architectural showcase, system design case study, and portfolio showcase. Commercial backend secrets, client databases, and proprietary algorithms are protected.*</sub>
 
 ---
 
 </div>
 
-## Table of Contents
+## 📑 Table of Contents
 - [Executive Overview](#executive-overview)
-- [System Architecture and Design Patterns](#system-architecture-and-design-patterns)
-- [Core Engineering Highlights](#core-engineering-highlights)
-  - [1. Real-Time Concurrency and ACID Integrity (PostgreSQL RPCs)](#1-real-time-concurrency-and-acid-integrity-postgresql-rpcs)
-  - [2. Elimination of N+1 Query Anti-Pattern](#2-elimination-of-n1-query-anti-pattern)
-  - [3. Enterprise POS and Financial Reconciliation Engine](#3-enterprise-pos-and-financial-reconciliation-engine)
-  - [4. Tournament Engine and Bracket Generation](#4-tournament-engine-and-bracket-generation)
-  - [5. Dynamic ELO and League Points (LP) Matchmaking](#5-dynamic-elo-and-league-points-lp-matchmaking)
-  - [6. DevSecOps: Mobile App Hardening (RASP) and Multi-Tenant RLS](#6-devsecops-mobile-app-hardening-rasp-and-multi-tenant-rls)
-- [Architectural Blueprint](#architectural-blueprint)
+- [Visual Product Showcase](#visual-product-showcase)
+- [System Architecture & Design Patterns](#system-architecture--design-patterns)
+  - [High-Level Ecosystem Topology](#high-level-ecosystem-topology)
+  - [Clean Architecture & Layered Decoupling](#clean-architecture--layered-decoupling)
+- [Core Engineering Innovations](#core-engineering-innovations)
+  - [1. Real-Time Concurrency & ACID Integrity (PostgreSQL RPCs)](#1-real-time-concurrency--acid-integrity-postgresql-rpcs)
+  - [2. Multi-Tender POS & Blind Cash Reconciliation](#2-multi-tender-pos--blind-cash-reconciliation)
+  - [3. SAMO Clients: Cross-Brand Loyalty & Optical QR Engine](#3-samo-clients-cross-brand-loyalty--optical-qr-engine)
+  - [4. Tournament Engine & Bracket Generation Math](#4-tournament-engine--bracket-generation-math)
+  - [5. Dynamic ELO & League Points (LP) Matchmaking](#5-dynamic-elo--league-points-lp-matchmaking)
+  - [6. Shadow Testing: The Scientist Pattern](#6-shadow-testing-the-scientist-pattern)
+  - [7. DevSecOps: Mobile App Hardening (RASP) & Multi-Tenant RLS](#7-devsecops-mobile-app-hardening-rasp--multi-tenant-rls)
 - [Tech Stack and Dependencies](#tech-stack-and-dependencies)
 - [Quality Assurance and Testing Strategy](#quality-assurance-and-testing-strategy)
-- [Author and Engineering Inquiries](#author-and-engineering-inquiries)
+- [Author & Professional Inquiries](#author--professional-inquiries)
 
 ---
 
 ## Executive Overview
 
-**SAMO** is a unified multiplatform solution that bridges the gap between competitive sports players and sports facility administrators. The platform addresses two core engineering domains:
+**SAMO** unifies high-engagement consumer experiences with mission-critical facility operations in a cohesive multi-platform ecosystem:
 
-1. **High-Engagement Player and League Experience:** Real-time court bookings, open-match matchmaking, dynamic ELO-based ladder rankings, consensus-driven score voting, and automated multi-stage tournament brackets.
-2. **Mission-Critical Club Operations (ERP / POS):** Robust multi-terminal Point of Sale system, real-time cashier shift management with blind cash reconciliation, split payments (Cash, Cards, Digital Wallets, App Bypass), barcode/QR optical hardware integration, loss/shrinkage tracking, and asynchronous financial report streaming.
-
-```
-+------------------------------------------------------------------------+
-|                             SAMO ECOSYSTEM                             |
-+----------------------------------+-------------------------------------+
-|      CUSTOMER / PLAYER APP       |     ADMINISTRATION / CLUB ERP       |
-|  - Dynamic ELO & League Points   |  - High-Concurrency POS System      |
-|  - Automated Tournament Brackets |  - Cash Register Shift Tracking     |
-|  - Real-Time Court Reservations  |  - Split Payments & App Bypass      |
-|  - Optical QR Verification       |  - Inventory, Mermas & Adjustments  |
-|  - Multi-Sport Theming Engine    |  - Bulk Financial Reporting & Export|
-+----------------------------------+-------------------------------------+
+```text
++----------------------------------------------------------------------------------------+
+|                                    SAMO ECOSYSTEM                                      |
++-------------------------------------------+--------------------------------------------+
+|        B2C: PLAYER & CONSUMER APP         |          B2B: CLUB & FACILITY ERP          |
+|  - Dynamic ELO & LP Ladder Rankings       |  - High-Concurrency Multi-Terminal POS     |
+|  - Automated Tournament Brackets          |  - Blind Cash Count & Shift Reconciliation |
+|  - Real-Time Court / Barber Reservations  |  - Split Payments & App Account Bypass     |
+|  - Optical QR Coupon & Wallet Redemption  |  - Staff & Instructor Payroll Engine       |
+|  - Multi-Sport Theming (Padel, Tennis...) |  - Live Financial Auditing & Excel Exports |
++-------------------------------------------+--------------------------------------------+
+|                            MODERN WEB & EDGE LANDINGS                                  |
+|  - React 18 + Vite Micro-Frontend architecture with Framer Motion visual physics        |
+|  - Global CDN edge caching (< 50ms latency) & Universal App Store deep linking        |
++----------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## System Architecture and Design Patterns
+## Visual Product Showcase
 
-The codebase strictly adheres to **Clean Architecture** combined with **Domain-Driven Design (DDD)** and the **BLoC (Business Logic Component)** pattern, ensuring 100% decoupling between UI layers and data sources.
+| Enterprise POS & Split Tender | Club Admin Dashboard |
+| :---: | :---: |
+| <img src="assets/pos_terminal.png" alt="POS Terminal" width="450" /> | <img src="assets/dashboard_overview.png" alt="Dashboard Overview" width="450" /> |
+| *Multi-tender split payments (Cash, Cards, Transfers, In-App).* | *Real-time occupancy tracking, metrics & cashflow health.* |
+
+| Court & Facility Reservation Grid | Staff Payroll & Commission Engine |
+| :---: | :---: |
+| <img src="assets/court_management.png" alt="Court Management" width="450" /> | <img src="assets/staff_payroll.png" alt="Staff Payroll" width="450" /> |
+| *Real-time visual schedule with conflict detection & holds.* | *Automated commission calculation and instructor payouts.* |
+
+---
+
+## System Architecture & Design Patterns
+
+### High-Level Ecosystem Topology
+
+The system separates high-traffic public web assets from private operational clients, all powered by a centralized relational data plane:
+
+```mermaid
+flowchart TD
+    subgraph WebEdge ["Web & Edge Delivery (Global CDN)"]
+        Landing["SAMO Match Landing (React 18 + Vite)"]
+        Foundation["SAMO Foundation Landing (React 18)"]
+    end
+
+    subgraph Clients ["Cross-Platform Clients (Flutter 3.9+)"]
+        MobileApp["Mobile App (Android / iOS) - Players"]
+        AdminWeb["Admin & POS Portal (Web / Desktop) - Clubs"]
+    end
+
+    subgraph Security ["Security & Hardening Perimeter"]
+        RASP["freeRASP Binary Guard (Anti-Tamper / Anti-Root)"]
+        AuthGateway["Supabase Auth (JWT + OAuth2 + Secure Storage)"]
+    end
+
+    subgraph Backend ["Backend & Database Plane (PostgreSQL 15)"]
+        RLS["Row Level Security Policies (Multi-Tenant Isolation)"]
+        RPC["ACID RPC Stored Procedures (PL/pgSQL Locks)"]
+        Tables[("Relational Data Store (Bookings, POS, CRM, Loyalty)")]
+        Realtime["Realtime Channels (PostgreSQL WAL WebSockets)"]
+    end
+
+    Clients --> Security
+    Security --> AuthGateway
+    AuthGateway --> RLS
+    RLS --> Tables
+    Clients -->|Direct RPC Execution| RPC
+    RPC --> Tables
+    Tables --> Realtime
+    Realtime -.->|Live Updates| Clients
+    Landing -.->|Deep Links / App Store| MobileApp
+```
+
+### Clean Architecture & Layered Decoupling
+
+The Flutter codebase enforces strict **Clean Architecture** combined with **BLoC** (Business Logic Component) pattern:
 
 ```mermaid
 graph TD
-    subgraph PresentationLayer ["Presentation Layer (Flutter)"]
-        UI["Pages & Custom Widgets"]
-        BLOC["BLoC State Managers (Events / States)"]
+    subgraph Presentation ["Presentation Layer"]
+        UI["Widgets / Views (Reactive UI)"]
+        BLOC["BLoC / Cubits (State Machine)"]
     end
 
-    subgraph DomainLayer ["Domain Layer (Pure Dart)"]
-        UC["UseCases (Isolated Business Logic)"]
-        REPO_INT["Repository Interfaces (Abstract Contracts)"]
-        ENTITIES["Domain Entities"]
+    subgraph Domain ["Domain Layer (Pure Dart)"]
+        UC["Use Cases (Isolated Business Rules)"]
+        ENT["Domain Entities"]
+        REPO_IF["Repository Interfaces (Abstract Contracts)"]
     end
 
-    subgraph DataLayer ["Data Layer"]
+    subgraph Data ["Data Layer"]
         REPO_IMPL["Repository Implementations"]
-        DS_REMOTE["Remote DataSources (Supabase / REST)"]
-        DS_LOCAL["Local DataSources / Cache (Prefs, SecureStorage)"]
-        MODELS["Data Models & Serializers (from/to JSON)"]
+        DS_REMOTE["Remote Data Sources (Supabase PostgREST / RPC)"]
+        MODELS["Data Models & JSON Mappers"]
     end
 
-    subgraph Infrastructure ["Cloud & Hardware Infrastructure"]
-        SB_DB["PostgreSQL / Supabase (RLS + RPCs)"]
-        SB_RT["Realtime Websocket Channels"]
-        FCM["Firebase Cloud Messaging (FCM)"]
-        HW["Hardware (Camera QR Scanner, Geolocation)"]
-        RASP["freeRASP Security Kernel"]
-    end
-
-    UI -->|Dispatches Events| BLOC
-    BLOC -->|Consumes| UC
-    UC -->|Interacts via Contract| REPO_INT
-    REPO_INT -.->|Implemented by| REPO_IMPL
-    REPO_IMPL -->|Queries| DS_REMOTE
-    REPO_IMPL -->|Reads/Writes| DS_LOCAL
-    DS_REMOTE -->|PostgREST / Websockets| SB_DB
-    DS_REMOTE -->|Events| SB_RT
-    DS_REMOTE -->|Push Notifications| FCM
-    UI -->|Interacts| HW
-    PresentationLayer -.->|Shielded by| RASP
-
+    UI -->|Events / Actions| BLOC
+    BLOC -->|Executes| UC
+    UC --> ENT
+    UC -->|Depends on Contract| REPO_IF
+    REPO_IMPL -.->|Implements| REPO_IF
+    REPO_IMPL --> DS_REMOTE
+    DS_REMOTE --> MODELS
 ```
 
-### Key Architectural Tenets
-- **Strict Unidirectional Data Flow:** `Page Event -> BLoC -> UseCase -> Repository -> DataSource -> PostgreSQL`.
-- **Functional Error Handling:** Zero untyped try/catch leaks in UI. All repositories return `Either<Failure, T>` using functional algebraic types (`dartz`), enforcing deterministic compile-time error handling.
-- **Dependency Injection:** Centralized service locator (`GetIt`) registering lazy singletons for data sources, repositories, and factories for state managers.
-- **Dynamic Multi-Tenant and Multi-Sport Theming:** Decoupled design tokens allowing runtime theme and accent injection depending on the active discipline (Padel, Football, Basketball, Tennis, Pickleball).
+* **Deterministic Functional Error Handling:** Uses `dartz` algebraic data types (`Either<Failure, T>`). UI components never receive uncaught exceptions; errors are first-class functional values.
+* **Inversion of Control (IoC):** Service Locator pattern using `GetIt` with lazy singletons and factories, allowing 100% mocked isolation in test harnesses.
 
 ---
 
-## Core Engineering Highlights
+## Core Engineering Innovations
 
-### 1. Real-Time Concurrency and ACID Integrity (PostgreSQL RPCs)
-- **Problem:** In high-traffic scenarios, concurrent users could attempt to book the same court slot simultaneously, or concurrent POS terminals could read stale register balances, resulting in race conditions and double-allocations.
-- **Solution:** Replaced client-side multi-query operations with **atomic stored procedures (PL/pgSQL RPCs)** executed directly within PostgreSQL transactions with explicit row-level locks:
-  - `update_shift_expected_balance()`: Atomically updates cashier cash-in-hand without lost updates.
-  - `join_open_match()` and `book_court_slot()`: Executes conditional lock checks to guarantee mutual exclusion in slot assignment.
+### 1. Real-Time Concurrency & ACID Integrity (PostgreSQL RPCs)
+* **Challenge:** High-traffic tournament registrations and peak reservation windows create critical race conditions (two players booking the same slot or two cashiers updating the same register).
+* **Engineering Solution:** Implemented atomic stored procedures (**PL/pgSQL RPCs**) executed with explicit row-level locks (`SELECT FOR UPDATE`):
+  * `update_shift_expected_balance()`: Computes register balances atomically without dirty reads.
+  * `create_cart_hold()` & `book_court_slot()`: Guarantees mutual exclusion and rollback mechanisms on concurrent slot allocation.
 
-### 2. Elimination of N+1 Query Anti-Pattern
-- **Problem:** Loading monthly financial statements originally triggered independent queries for each day's transactions, causing excessive network overhead, database latency, and UI degradation.
-- **Solution:** Re-engineered the retrieval pipeline to perform **3 vectorized bulk queries** for the entire date range, streaming the raw dataset and performing date-grouping, filtering, and mathematical balance operations in-memory within Dart isolates.
+### 2. Multi-Tender POS & Blind Cash Reconciliation
+* **Multi-Modal Split Payments:** High-concurrency checkout engine supporting complex multi-tender transactions across Cash, Debit/Credit Cards, Digital Wallets (Nequi/Daviplata), and Customer In-App Account Bypass.
+* **Blind Cash Counting (Shrinkage Prevention):** Cashiers submit end-of-shift physical counts blindly without seeing system balances. Discrepancies are logged in audit tables for management review.
+* **Optical Hardware Stream:** Real-time barcode and QR code reading via camera streams with haptic confirmation.
 
-### 3. Enterprise POS and Financial Reconciliation Engine
-- **Multi-Modal Split Payments:** Dynamic payment engine capable of splitting single tickets across multiple payment methods simultaneously (Cash, Debit/Credit Card, Nequi/Digital Wallet, In-App Account Bypass).
-- **Blind Cash Counting and Shift Auditing:** Automated expected balance calculation based on real recorded ledger transactions versus cashier physical count, preventing cash shrinkage.
-- **Hardware Optical Integration:** Real-time barcode and QR code reading integrated via camera streams (`mobile_scanner`) with haptic feedback.
-- **Report Streaming:** Asynchronous generation and file saving of structured **Excel (.xlsx)** and **CSV** reports directly from client devices.
+### 3. SAMO Clients: Cross-Brand Loyalty & Optical QR Engine
+* **Commercial Brand Partnerships:** Allows facility administrators to configure commercial alliances (e.g., sports equipment brands, barbering chains, nutrition partners) with custom discount rules and point redemption ratios.
+* **Partner Scanner Application:** Partner establishments verify and redeem user coupons in real-time via camera scanning, with instant atomic status updates and fraud prevention.
 
-### 4. Tournament Engine and Bracket Generation
-- **Mathematical Bracket Generator:** Automated recursive generator supporting Single Elimination, Double Elimination, Round Robin, and "Americano" mixed rotation formats.
-- **Drag-and-Drop Manual Seeding:** Interactive visual canvas allowing tournament organizers to manually re-seed players and teams before finalizing bracket generation.
-- **Consensus-Based Dispute Resolution:** Multi-party match result voting system with automatic validation triggers when both sides confirm scores.
+### 4. Tournament Engine & Bracket Generation Math
+* **Automated Tournament Generator:** Recursive bracket generation algorithm supporting Single Elimination, Double Elimination, Round Robin, and "Americano" mixed rotation.
+* **Consensus-Driven Result Voting:** Multi-party match result validation with automated consensus triggers when both opposing parties submit matching scores.
 
-### 5. Dynamic ELO and League Points (LP) Matchmaking
-- Mathematical ranking algorithm adapting standard chess ELO principles for doubles/singles racquet sports:
+### 5. Dynamic ELO & League Points (LP) Matchmaking
+* Adapted competitive chess ELO rating mathematics for multi-sport singles and doubles:
   $$\Delta R = K \cdot (S - E)$$
-- Includes tier divisions (Bronze, Silver, Gold, Diamond, Master), placement match weighting, inactivity decay, and promotion/relegation thresholds.
+* Features competitive tiers (Iron through Grand Athlete), placement match calibration, inactivity decay, and tiered promotion/relegation series.
 
-### 6. DevSecOps: Mobile App Hardening (RASP) and Multi-Tenant RLS
-- **Runtime Application Self-Protection (RASP):** Integrated `freeRASP` at the binary level to detect and mitigate:
-  - Rooted / Jailbroken environments.
-  - Reverse-engineering hooks (Frida, Xposed).
-  - Emulator execution and repackaging/tampering signatures.
-- **Row-Level Security (RLS):** 100% of PostgreSQL tables protected by granular security policies, enforcing strict tenant isolation so clubs and players can only mutate authorized records.
-- **Environment Secret Isolation:** Strict encapsulation of runtime credentials using `.env` configurations injected via `flutter_dotenv`.
+### 6. Shadow Testing: The Scientist Pattern
+* **Zero-Downtime Refactoring:** Integrated an in-house implementation of the **Scientist Pattern** (`scientist_service.dart`) inspired by GitHub and Stripe.
+* During high-risk financial migrations, the system executes both legacy and refactored algorithms simultaneously in the background, logging deviations to audit collectors without impacting production users.
+
+### 7. DevSecOps: Mobile App Hardening (RASP) & Multi-Tenant RLS
+* **Binary Runtime Self-Protection (freeRASP):** Detects rooted/jailbroken devices, reverse-engineering frameworks (Frida, Xposed), debuggers, and application tampering.
+* **Multi-Tenant Row-Level Security (RLS):** 100% of PostgreSQL tables enforce strict tenant barriers based on authenticated JWT claims.
 
 ---
 
 ## Tech Stack and Dependencies
 
-| Category | Technology / Package | Purpose |
-|---|---|---|
-| **Core Framework** | `Flutter 3.9.2+` & `Dart` | Cross-platform runtime (Android, iOS, Web) |
-| **State Management** | `flutter_bloc` & `equatable` | Unidirectional reactive state orchestration |
-| **Architecture** | `get_it`, `dartz` | Dependency injection & functional error handling (`Either`) |
-| **Backend & Database** | `supabase_flutter` (PostgreSQL) | Auth, Storage, Realtime subscriptions, RPCs |
-| **Security** | `freerasp`, `flutter_dotenv` | Binary RASP, anti-hooking & secret encapsulation |
-| **Authentication** | `google_sign_in`, `sign_in_with_apple` | Native OAuth2 federated authentication |
-| **Push Notifications** | `firebase_messaging`, `flutter_local_notifications` | Push messaging (FCM) & local foreground triggers |
-| **Deep Linking** | `app_links` | Dynamic universal & custom-scheme deep links |
-| **Hardware & Sensors** | `mobile_scanner`, `geolocator`, `image_cropper` | QR reading, GPS positioning, image manipulation |
-| **Mapping** | `flutter_map`, `latlong2` | Vector OpenStreetMap visualization & geofencing |
-| **Data Export** | `excel`, `csv`, `file_saver` | Client-side spreadsheet generation and export |
-| **Testing** | `golden_toolkit`, `bloc_test`, `mocktail` | Visual regression, BLoC and unit testing suites |
+| Domain | Technology | Key Capabilities |
+| :--- | :--- | :--- |
+| **Mobile & Desktop** | **Flutter 3.9+ / Dart 3.9+** | High-performance multiplatform client engine |
+| **Web Frontends** | **React 18, Vite, Framer Motion** | Ultra-lightweight landing pages with physics animations |
+| **State Management** | **flutter_bloc 8.1, Equatable** | Deterministic, event-driven state orchestration |
+| **Architecture** | **get_it, dartz** | Dependency injection & functional programming (`Either`) |
+| **Backend & Cloud** | **Supabase (PostgreSQL 15)** | Row Level Security, Realtime WebSockets, Storage, RPCs |
+| **Mobile Hardening** | **freeRASP, flutter_dotenv** | Binary integrity, anti-tampering, environment isolation |
+| **Optical & Hardware**| **mobile_scanner, geolocator** | Real-time QR scanning and location-based verification |
+| **Data Streaming** | **excel, csv, file_saver** | Asynchronous client-side report generation |
+| **Testing & QA** | **mocktail, bloc_test** | Unit testing, BLoC mock verification, coverage tooling |
 
 ---
 
 ## Quality Assurance and Testing Strategy
 
-```
-  +---------------------------------------------------------+
-  |                    INTEGRATION TESTS                    |
-  |    End-to-End user journeys: Booking, Auth, POS flow   |
-  +---------------------------------------------------------+
-  |                   GOLDEN UI TESTS                       |
-  |   Pixel-perfect visual regression on multiple viewports |
-  +---------------------------------------------------------+
-  |                 BLoC & USE CASE TESTS                   |
-  |   Deterministic state transition testing (bloc_test)    |
-  +---------------------------------------------------------+
-  |                   UNIT & MODEL TESTS                    |
-  |   Serialization, ELO math, bracket algorithms (pure)    |
-  +---------------------------------------------------------+
+The repository follows a rigorous multi-tier testing pyramid:
+
+```text
+    ▲
+   / \     End-to-End Integration Tests (Booking & POS critical paths)
+  /───\    
+ /     \   BLoC & UseCase State Transition Tests (mocktail, bloc_test)
+/───────\  
+---------  Pure Unit & Mathematical Tests (ELO formulas, bracket math, parsers)
 ```
 
-The system employs a strict multi-tier testing pyramid:
-1. **Unit and Math Testing:** Deterministic pure function verification (ELO calculation, bracket generation, financial rounding).
-2. **BLoC State Testing:** Event-to-state stream transitions under mocked failure/success conditions using `bloc_test` and `mocktail`.
-3. **Golden Visual Regression:** Automated snapshots preserving pixel-level consistency across multiple screen resolutions.
-4. **Static Code Analysis:** Strict linting rules enforced via `flutter_lints` and `analysis_options.yaml`.
+* **BLoC Stream Testing:** Verified state emissions under simulated network latency and infrastructure failures.
+* **Static Code Analysis:** Strict lint rules enforced via continuous integration pipelines.
+* **CI Quality Gates:** Automated GitHub Actions workflows validating linting, testing, and bundle builds on every PR.
 
 ---
 
-## Author and Engineering Inquiries
+## Author & Professional Inquiries
 
-Developed and architected by **Nicolás León** — Systems Engineer & Software Architect.
+Architected and developed by **Nicolás León** — Systems Engineer & Software Architect.
 
-- **LinkedIn:** [linkedin.com/in/nicolas-leon](https://linkedin.com)
-- **GitHub:** [github.com/Nicolas11Leon](https://github.com/Nicolas11Leon)
-- **Contact:** Software Architecture & Systems Engineering Consulting
+* **GitHub Organization:** [@SAMOenterprises](https://github.com/SAMOenterprises)
+* **Personal GitHub:** [@Nicolas11Leon](https://github.com/Nicolas11Leon)
+* **Official Website:** [samoenterprises.site](https://samoenterprises.site/)
+* **Direct Email:** [leonparranicolas@gmail.com](mailto:leonparranicolas@gmail.com)
 
 ---
 
 <div align="center">
-  <sub>Built with precision, Clean Architecture, and engineering rigor. Copyright 2026 SAMO Ecosystem.</sub>
+  <sub>Engineered with Clean Architecture, mathematical precision, and enterprise rigor. © 2026 SAMO Enterprises.</sub>
 </div>
