@@ -43,6 +43,7 @@
   - [7. DevSecOps: Mobile App Hardening (RASP) & Multi-Tenant RLS](#7-devsecops-mobile-app-hardening-rasp--multi-tenant-rls)
 - [Tech Stack and Dependencies](#tech-stack-and-dependencies)
 - [Quality Assurance and Testing Strategy](#quality-assurance-and-testing-strategy)
+- [Engineering Roadmap & Scalability Milestones](#engineering-roadmap--scalability-milestones)
 - [Author & Professional Inquiries](#author--professional-inquiries)
 
 ---
@@ -230,6 +231,20 @@ The repository follows a rigorous multi-tier testing pyramid:
 * **BLoC Stream Testing:** Verified state emissions under simulated network latency and infrastructure failures.
 * **Static Code Analysis:** Strict lint rules enforced via continuous integration pipelines.
 * **CI Quality Gates:** Automated GitHub Actions workflows validating linting, testing, and bundle builds on every PR.
+
+---
+
+## Engineering Roadmap & Scalability Milestones
+
+The architectural evolution of the SAMO ecosystem focuses on mission-critical throughput, offline resilience, and enterprise club scaling:
+
+- [x] **Distributed Multi-Tender POS:** Sub-second transactional processing with blind shift reconciliation.
+- [x] **Real-Time Tournament Orchestrator:** Dynamic bracket seeding and live match progression via WebSockets.
+- [x] **Scientist Pattern Integration:** Shadow-routing financial calculations to ensure zero regressions during schema migrations.
+- [x] **DevSecOps RASP Hardening:** Native anti-tampering and jailbreak/root verification at runtime.
+- [ ] **Offline-First Synchronization Engine:** Local-first SQLite/Drift state persistence with differential sync replay for intermittent club network conditions.
+- [ ] **Multi-Region Read Replicas:** Geographically distributed database read caching for sub-50ms analytics query latency.
+- [ ] **Micro-Frontend Admin Matrix:** Isolated federated dashboards for multi-tenant enterprise franchise management.
 
 ---
 
