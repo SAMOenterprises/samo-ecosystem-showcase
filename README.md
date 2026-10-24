@@ -29,6 +29,7 @@
 
 ## 📑 Table of Contents
 - [Executive Overview](#executive-overview)
+- [SAMO Modules](#samo-modules)
 - [Visual Product Showcase](#visual-product-showcase)
 - [System Architecture & Design Patterns](#system-architecture--design-patterns)
   - [High-Level Ecosystem Topology](#high-level-ecosystem-topology)
@@ -36,7 +37,7 @@
 - [Core Engineering Innovations](#core-engineering-innovations)
   - [1. Real-Time Concurrency & ACID Integrity (PostgreSQL RPCs)](#1-real-time-concurrency--acid-integrity-postgresql-rpcs)
   - [2. Multi-Tender POS & Blind Cash Reconciliation](#2-multi-tender-pos--blind-cash-reconciliation)
-  - [3. SAMO Clients: Cross-Brand Loyalty & Optical QR Engine](#3-samo-clients-cross-brand-loyalty--optical-qr-engine)
+  - [3. SAMO Customers: Business Alliance Network & Loyalty Passport](#3-samo-customers-business-alliance-network--loyalty-passport)
   - [4. Tournament Engine & Bracket Generation Math](#4-tournament-engine--bracket-generation-math)
   - [5. Dynamic ELO & League Points (LP) Matchmaking](#5-dynamic-elo--league-points-lp-matchmaking)
   - [6. Shadow Testing: The Scientist Pattern](#6-shadow-testing-the-scientist-pattern)
@@ -71,6 +72,23 @@
 
 ---
 
+## SAMO Modules
+
+SAMO is a modular platform: every module works on its own and integrates with the others, so a business adopts only what it needs.
+
+| Module | What it does | Typical users |
+| :--- | :--- | :--- |
+| **Bookings & Agenda** | Real-time scheduling grid for courts, rooms, tables and staff, with conflict detection, holds, breaks and recurring series. | Sports clubs, barbershops, salons, restaurants, studios |
+| **Services & Appointments** | Service catalog, combos, per-professional schedules, commissions and tips. | Barbershops, spas, clinics, academies |
+| **POS & ERP** | Multi-terminal point of sale, split tenders, blind cash reconciliation, inventory, payroll, expenses and accounting reports. | Any small or mid-size business |
+| **Tournaments & Rankings** | Automated brackets, result voting, ELO and league points across several sports. | Clubs, leagues, academies |
+| **SAMO Customers** | Independent alliance network for small and mid-size businesses: loyalty passport, shared offers, negotiated deals between brands and a cashier module with full audit. | Any business, with or without the rest of SAMO |
+| **Landing & Foundation sites** | Fast edge-delivered public sites for each brand and for the community programs. | Brands and communities |
+
+Modules are decoupled by design: using one never forces a business to use another, but they synchronize when both are present (for example, the POS reads and redeems Customers coupons at checkout).
+
+---
+
 ## Visual Product Showcase
 
 | Enterprise POS & Split Tender | Club Admin Dashboard |
@@ -82,6 +100,11 @@
 | :---: | :---: |
 | <img src="assets/court_management.png" alt="Court Management" width="450" /> | <img src="assets/staff_payroll.png" alt="Staff Payroll" width="450" /> |
 | *Real-time visual schedule with conflict detection & holds.* | *Automated commission calculation and instructor payouts.* |
+
+| SAMO Customers: Loyalty Passport |
+| :---: |
+| <img src="assets/customers_passport.jpg" alt="SAMO Customers sign-up and passport screen" width="320" /> |
+| *Phone-based sign-up that issues a permanent personal QR for the whole alliance network.* |
 
 ---
 
@@ -176,9 +199,16 @@ graph TD
 * **Blind Cash Counting (Shrinkage Prevention):** Cashiers submit end-of-shift physical counts blindly without seeing system balances. Discrepancies are logged in audit tables for management review.
 * **Optical Hardware Stream:** Real-time barcode and QR code reading via camera streams with haptic confirmation.
 
-### 3. SAMO Clients: Cross-Brand Loyalty & Optical QR Engine
-* **Commercial Brand Partnerships:** Allows facility administrators to configure commercial alliances (e.g., sports equipment brands, barbering chains, nutrition partners) with custom discount rules and point redemption ratios.
-* **Partner Scanner Application:** Partner establishments verify and redeem user coupons in real-time via camera scanning, with instant atomic status updates and fraud prevention.
+### 3. SAMO Customers: Business Alliance Network & Loyalty Passport
+SAMO Customers connects small and mid-size businesses in growing cities into an alliance network where brands trade benefits and learn about their customers with consent. It is a standalone product that is fully compatible with the SAMO POS and ERP, and neither requires the other.
+
+* **Passport & permanent QR:** A customer signs up with a phone number and receives one random, 128-bit, permanent QR. The QR never changes; security comes from the customer confirming every coupon redemption in their own app (a request that expires in minutes), so a copied QR cannot spend anything.
+* **Alliances without intermediaries:** Two businesses propose, counter-propose and accept a deal directly. Every change is stored as an immutable version, and a deal only takes effect when both parties accept.
+* **Absolute per-brand privacy:** Row-Level Security and `SECURITY DEFINER` RPCs ensure each brand sees only its own customers, offers and history. Businesses never receive the customer's QR or login identity.
+* **Cashier & team module with full audit:** Owner, manager and cashier roles, invitations, rate-limited scanning and an immutable access log that records who scanned whom and when.
+* **Immutable loyalty ledger:** Points are credited by a database trigger on POS sales (idempotent, refund-aware) and can never block or break a sale.
+* **Realtime instead of polling:** Redemption approvals and deal updates are pushed over private Realtime channels, keeping request volume low enough for a free-tier database.
+* **Built for scale on small budgets:** Offers are materialized only when a customer is scanned, old records are purged on a schedule, and hot paths are indexed.
 
 ### 4. Tournament Engine & Bracket Generation Math
 * **Automated Tournament Generator:** Recursive bracket generation algorithm supporting Single Elimination, Double Elimination, Round Robin, and "Americano" mixed rotation.
@@ -195,7 +225,8 @@ graph TD
 
 ### 7. DevSecOps: Mobile App Hardening (RASP) & Multi-Tenant RLS
 * **Binary Runtime Self-Protection (freeRASP):** Detects rooted/jailbroken devices, reverse-engineering frameworks (Frida, Xposed), debuggers, and application tampering.
-* **Multi-Tenant Row-Level Security (RLS):** 100% of PostgreSQL tables enforce strict tenant barriers based on authenticated JWT claims.
+* **Multi-Tenant Row-Level Security (RLS):** Row-Level Security is enabled on every PostgreSQL table, and the loyalty and alliance tables enforce per-brand isolation through policies based on the authenticated user and business membership.
+* **Staging parity:** Every schema change is first validated against a separate QA project and then applied to production from the same migration file, with SQL tests that run inside rolled-back transactions.
 
 ---
 
@@ -229,6 +260,8 @@ The repository follows a rigorous multi-tier testing pyramid:
 ```
 
 * **BLoC Stream Testing:** Verified state emissions under simulated network latency and infrastructure failures.
+* **SQL Behaviour Tests:** Database functions and policies are tested in rolled-back transactions (isolation between brands, atomic redemptions, immutable ledgers, scan limits).
+* **In-Memory Backend for Tests:** A fake PostgREST backend lets data sources and end-to-end flows run without touching any real database.
 * **Static Code Analysis:** Strict lint rules enforced via continuous integration pipelines.
 * **CI Quality Gates:** Automated GitHub Actions workflows validating linting, testing, and bundle builds on every PR.
 
@@ -242,6 +275,7 @@ The architectural evolution of the SAMO ecosystem focuses on mission-critical th
 - [x] **Real-Time Tournament Orchestrator:** Dynamic bracket seeding and live match progression via WebSockets.
 - [x] **Scientist Pattern Integration:** Shadow-routing financial calculations to ensure zero regressions during schema migrations.
 - [x] **DevSecOps RASP Hardening:** Native anti-tampering and jailbreak/root verification at runtime.
+- [x] **SAMO Customers Alliance Network:** Loyalty passport, confirmed redemptions, negotiated deals between brands and audited cashier module.
 - [ ] **Offline-First Synchronization Engine:** Local-first SQLite/Drift state persistence with differential sync replay for intermittent club network conditions.
 - [ ] **Multi-Region Read Replicas:** Geographically distributed database read caching for sub-50ms analytics query latency.
 - [ ] **Micro-Frontend Admin Matrix:** Isolated federated dashboards for multi-tenant enterprise franchise management.
