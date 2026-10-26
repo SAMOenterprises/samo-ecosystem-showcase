@@ -30,6 +30,7 @@
 ## 📑 Table of Contents
 - [Executive Overview](#executive-overview)
 - [SAMO Modules](#samo-modules)
+- [Codebase at a Glance](#codebase-at-a-glance)
 - [Visual Product Showcase](#visual-product-showcase)
 - [System Architecture & Design Patterns](#system-architecture--design-patterns)
   - [High-Level Ecosystem Topology](#high-level-ecosystem-topology)
@@ -42,6 +43,10 @@
   - [5. Dynamic ELO & League Points (LP) Matchmaking](#5-dynamic-elo--league-points-lp-matchmaking)
   - [6. Shadow Testing: The Scientist Pattern](#6-shadow-testing-the-scientist-pattern)
   - [7. DevSecOps: Mobile App Hardening (RASP) & Multi-Tenant RLS](#7-devsecops-mobile-app-hardening-rasp--multi-tenant-rls)
+  - [8. Modular Licensing: Per-Club Feature Entitlements](#8-modular-licensing-per-club-feature-entitlements)
+  - [9. Platform Operations: Service Suspension & Notices](#9-platform-operations-service-suspension--notices)
+  - [10. Verified Payments & Scheduled Email Reports](#10-verified-payments--scheduled-email-reports)
+  - [11. Architecture Rules as Automated Tests](#11-architecture-rules-as-automated-tests)
 - [Tech Stack and Dependencies](#tech-stack-and-dependencies)
 - [Quality Assurance and Testing Strategy](#quality-assurance-and-testing-strategy)
 - [Engineering Roadmap & Scalability Milestones](#engineering-roadmap--scalability-milestones)
@@ -86,6 +91,23 @@ SAMO is a modular platform: every module works on its own and integrates with th
 | **Landing & Foundation sites** | Fast edge-delivered public sites for each brand and for the community programs. | Brands and communities |
 
 Modules are decoupled by design: using one never forces a business to use another, but they synchronize when both are present (for example, the POS reads and redeems Customers coupons at checkout).
+
+---
+
+## Codebase at a Glance
+
+Hand-written code only (non-blank lines; generated files, build output, dependencies, documentation and one-off maintenance scripts excluded). Measured October 2026.
+
+| Language | Lines | Files | Where it lives |
+| :--- | ---: | ---: | :--- |
+| **Dart** (application) | ~188,000 | ~900 | Flutter clients: mobile, web admin/POS, desktop |
+| **Dart** (tests) | ~27,000 | ~300 | Unit, BLoC, widget, data-source and architecture-rule tests |
+| **CSS / HTML / JavaScript** | ~16,000 | ~160 | React + Vite landings and public pages |
+| **SQL** | ~5,000 | ~46 | Versioned PostgreSQL scripts: schema, RLS, RPCs, hardening |
+| **TypeScript** | ~2,000 | 14 | Supabase Edge Functions (payments, e-mail reports) |
+| **Total** | **~239,000** | **~1,400** | |
+
+*Line counts are a measure of scope, not of quality: the emphasis of this project is on architecture, security and test coverage, described below.*
 
 ---
 
@@ -227,6 +249,26 @@ SAMO Customers connects small and mid-size businesses in growing cities into an 
 * **Binary Runtime Self-Protection (freeRASP):** Detects rooted/jailbroken devices, reverse-engineering frameworks (Frida, Xposed), debuggers, and application tampering.
 * **Multi-Tenant Row-Level Security (RLS):** Row-Level Security is enabled on every PostgreSQL table, and the loyalty and alliance tables enforce per-brand isolation through policies based on the authenticated user and business membership.
 * **Staging parity:** Every schema change is first validated against a separate QA project and then applied to production from the same migration file, with SQL tests that run inside rolled-back transactions.
+* **Privacy enforced by the database, not the UI:** sensitive columns (who booked a slot, billing data, integration tokens) are protected with column-level grants and `SECURITY DEFINER` functions that return only what the caller is allowed to see. The client never receives data it should not show.
+* **Staged, reversible hardening:** every security change is written as a versioned SQL script, applied first to an isolated QA project, then verified in production with read-only simulations that roll back (impersonating real roles) before and after the change.
+
+### 8. Modular Licensing: Per-Club Feature Entitlements
+* Every business capability (agenda, POS, inventory, tournaments, CRM, finance, payroll, e-mail reports, matchmaking...) is a **separate module** in a catalog with declared dependencies.
+* A platform super-admin switches each module **Active / Trial (with expiry) / Off** per club. Turning a module off cascades to the modules that depend on it; turning one on activates its prerequisites in order, always with a confirmation step.
+* **Two-key access rule:** a screen is visible only if the *club has the module* **and** the *person has the permission* (`DashboardAccess`, a pure-Dart domain service, 100% unit-tested).
+* Enforced **server-side** too (RLS policies call `club_has_module`), so a modified client cannot reach a module the club does not have. The client fails open on network errors so a connectivity blip never locks a business out.
+
+### 9. Platform Operations: Service Suspension & Notices
+* Super-admins can **suspend a club** (all of its staff lose access, enforced in the database membership functions) and reactivate it, and can broadcast a **service notice banner** (info / warning / critical colour levels, contrast-checked for accessibility) that the club sees across the app.
+* Changes go through audited RPCs; the client polls with a conservative interval and keeps the last known state on failure.
+
+### 10. Verified Payments & Scheduled Email Reports
+* **Online payments:** Wompi webhook handler validating the event **SHA-256 checksum**, with a polling fallback (`verify-payment`) and strict separation of test and production environments and secrets.
+* **E-mail reports per club:** each business chooses its own recipients (max. 3, double opt-in link) and receives an executive workbook and a raw balance workbook (sales, waste, expenses, barber/instructor performance). Implemented as Deno Edge Functions with their own automated test suite and a mutation check on the critical validations.
+
+### 11. Architecture Rules as Automated Tests
+* `layer_rules_test.dart` scans the codebase and **fails the build** if the domain layer imports Flutter, Supabase or presentation code, or if presentation reaches into the data layer. Pre-existing exceptions are frozen in an explicit allow-list so the debt can only shrink.
+* Features such as `club_service`, `club_modules` and the super-admin module manager were built to this rule from the first commit.
 
 ---
 
@@ -259,6 +301,7 @@ The repository follows a rigorous multi-tier testing pyramid:
 ---------  Pure Unit & Mathematical Tests (ELO formulas, bracket math, parsers)
 ```
 
+* **1,400+ automated tests** (unit, BLoC/Cubit, widget, data-source and architecture rules) plus Deno tests for Edge Functions.
 * **BLoC Stream Testing:** Verified state emissions under simulated network latency and infrastructure failures.
 * **SQL Behaviour Tests:** Database functions and policies are tested in rolled-back transactions (isolation between brands, atomic redemptions, immutable ledgers, scan limits).
 * **In-Memory Backend for Tests:** A fake PostgREST backend lets data sources and end-to-end flows run without touching any real database.
@@ -276,6 +319,10 @@ The architectural evolution of the SAMO ecosystem focuses on mission-critical th
 - [x] **Scientist Pattern Integration:** Shadow-routing financial calculations to ensure zero regressions during schema migrations.
 - [x] **DevSecOps RASP Hardening:** Native anti-tampering and jailbreak/root verification at runtime.
 - [x] **SAMO Customers Alliance Network:** Loyalty passport, confirmed redemptions, negotiated deals between brands and audited cashier module.
+- [x] **Per-Club Module Licensing:** Catalog, dependencies, trials and server-side enforcement.
+- [x] **Platform Operations Console:** Club suspension, colour-coded service notices, audited super-admin RPCs.
+- [x] **Verified Online Payments & E-mail Reports:** Signed webhooks, test/production isolation, per-club report recipients.
+- [x] **Automated Architecture Guardrails:** Layer rules enforced by the test suite.
 - [ ] **Offline-First Synchronization Engine:** Local-first SQLite/Drift state persistence with differential sync replay for intermittent club network conditions.
 - [ ] **Multi-Region Read Replicas:** Geographically distributed database read caching for sub-50ms analytics query latency.
 - [ ] **Micro-Frontend Admin Matrix:** Isolated federated dashboards for multi-tenant enterprise franchise management.
